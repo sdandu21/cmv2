@@ -784,6 +784,7 @@ jobs:
           echo "Set flags: schema=$UPDATE_COMMON_SCHEMA, template=$UPDATE_COMMON_CONFIG"
 
       - name: Create Common Schema
+        id: create-common-schemas
         if: steps.update-flags.outputs.update_schema == 'true'
         uses: ./.github/actions/wo-create-schema
         with:
@@ -791,6 +792,37 @@ jobs:
           resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
           location: ${{ env.AZURE_LOCATION }}
           schema-files: ${{ steps.get-files.outputs.schema_files }}
+
+      - name: Store Common Schema Results
+        id: store-common-schema-results
+        if: steps.update-flags.outputs.update_schema == 'true'
+        run: |
+          # Store schema validation results as artifacts for aggregation
+          mkdir -p schema-results
+          
+          # Create a result file for common schemas
+          RESULT_FILE="schema-results/common-results.json"
+          
+          cat > "$RESULT_FILE" << EOF
+          {
+            "app_name": "common",
+            "schemas_skipped": "${{ steps.create-common-schemas.outputs.schemas-skipped || '0' }}",
+            "schemas_failed": "${{ steps.create-common-schemas.outputs.schemas-failed || '0' }}",
+            "skipped_schemas_details": ${{ steps.create-common-schemas.outputs.skipped-schemas-details || '[]' }},
+            "failed_schemas_details": ${{ steps.create-common-schemas.outputs.failed-schemas-details || '[]' }}
+          }
+          EOF
+          
+          echo "Common schema results:"
+          cat "$RESULT_FILE"
+
+      - name: Upload Common Schema Results
+        if: steps.update-flags.outputs.update_schema == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: schema-results-common
+          path: schema-results/
+          retention-days: 1
 
       - name: Create Common Config Template
         id: create-config
