@@ -1141,8 +1141,8 @@ jobs:
 
 
   report-config-template-validation-errors:
-    needs: [update-wo-artifacts, update_common_artifacts, commit-generated-files]
-    if: always() && (needs.update-wo-artifacts.result != 'skipped' || needs.update_common_artifacts.result != 'skipped')
+    needs: [update_common_artifacts, commit-generated-files]
+    if: always() && needs.update_common_artifacts.result != 'skipped'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
