@@ -723,9 +723,9 @@ jobs:
             fi
           fi
 
-          # Convert arrays to JSON
-          SCHEMA_FILES_JSON=$(printf '%s\n' "${SCHEMA_FILES[@]}" | jq -R -s -c 'split("\n")[:-1]')
-          CONFIG_FILES_JSON=$(printf '%s\n' "${CONFIG_FILES[@]}" | jq -R -s -c 'split("\n")[:-1]')
+          # Convert arrays to JSON, filtering out empty strings
+          SCHEMA_FILES_JSON=$(printf '%s\n' "${SCHEMA_FILES[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          CONFIG_FILES_JSON=$(printf '%s\n' "${CONFIG_FILES[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))')
 
           # Set outputs
           echo "schema_files=$SCHEMA_FILES_JSON" >> $GITHUB_OUTPUT
